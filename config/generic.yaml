@@ -1,0 +1,261 @@
+# fimap generic.yaml — ported from src/config/generic.xml revision 3
+# Basic scan parameters: relative/absolute/log/blind files, shell commands.
+
+relative_files:
+  - path: /etc/passwd
+    find: "root:"
+    flags: r
+    unix: true
+    windows: false
+  - path: "c:\\boot.ini"
+    find: "[operating"
+    flags: r
+    unix: false
+    windows: true
+  - path: /proc/self/environ
+    find: "HTTP_USER_AGENT="
+    flags: rxA
+    unix: true
+    windows: false
+  - path: "c:\\windows\\win.ini"
+    find: "[fonts"
+    flags: r
+    unix: false
+    windows: true
+
+absolute_files: []
+
+remote_files: []
+
+log_files:
+  - path: /var/log/apache2/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/log/apache/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/log/httpd/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/log/apache2/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/log/apache/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/log/httpd/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /apache/logs/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /apache/logs/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /apache2/logs/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /apache2/logs/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /etc/httpd/logs/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /etc/httpd/logs/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/httpd/logs/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/httpd/logs/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/www/logs/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/www/logs/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /usr/local/apache/logs/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /usr/local/apache/logs/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /usr/local/apache2/logs/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /usr/local/apache2/logs/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/log/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/log/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /logs/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /logs/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /opt/lampp/logs/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /opt/lampp/logs/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /opt/xampp/logs/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /opt/xampp/logs/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: "C:\\Program Files\\Apache Group\\Apache\\logs\\access.log"
+    find: '"GET /'
+    flags: LHx
+    unix: false
+    windows: true
+  - path: "C:\\Program Files\\Apache Group\\Apache\\logs\\access_log"
+    find: '"GET /'
+    flags: LHx
+    unix: false
+    windows: true
+  - path: /var/log/auth.log
+    find: ' session '
+    flags: LSx
+    unix: true
+    windows: false
+  - path: /var/log/secure
+    find: ' session '
+    flags: LSx
+    unix: true
+    windows: false
+
+blind_files:
+  mindepth: 0
+  maxdepth: 15
+  files:
+    - path: /etc/passwd
+      find: "root:"
+      flags: r
+      unix: true
+      windows: false
+    - path: "c:\\boot.ini"
+      find: "[operating"
+      flags: r
+      unix: false
+      windows: true
+    - path: "c:\\windows\\win.ini"
+      find: "[fonts"
+      flags: r
+      unix: false
+      windows: true
+    - path: "http://www.tha-imax.de/fimap_testfiles/test"
+      find: "This is the right thing."
+      flags: rR
+      unix: true
+      windows: true
+    - path: "http://www.tha-imax.de/fimap_testfiles/test.php"
+      find: "This is the right thing."
+      flags: rR
+      unix: true
+      windows: true
+    - path: "http://www.tha-imax.de/fimap_testfiles/test.html"
+      find: "This is the right thing."
+      flags: rR
+      unix: true
+      windows: true
+    - path: "http://www.tha-imax.de/fimap_testfiles/test.inc"
+      find: "This is the right thing."
+      flags: rR
+      unix: true
+      windows: true
+
+methods:
+  unix:
+    concatcommand: ";"
+    shellquiz:
+      type: shell_math          # pure Python — no exec()
+    kernelversion:
+      source: "uname -r -s"
+    currentdir:
+      source: "pwd"
+    currentuser:
+      source: "whoami"
+    cd:
+      source: "cd '__DIR__'"
+  windows:
+    concatcommand: "&"
+    shellquiz:
+      type: shell_math          # pure Python — no exec()
+    kernelversion:
+      source: "ver"
+    currentdir:
+      source: "chdir"
+    currentuser:
+      source: "echo %USERNAME%"
+    cd:
+      source: 'cd "__DIR__"'
+
+languagesets:
+  - name: PHP
+    langfile: php.yaml
+  # Perl dropped — non-functional in original, quiz generated PHP code

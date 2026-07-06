@@ -1,86 +1,145 @@
-Welcome to the fimap project!
-=============================
+# fimap — Automatic LFI/RFI Scanner and Exploiter (Python3 Rewrite)
 
-fimap is a little python tool which can find, prepare, audit, exploit and even google automatically for local and remote file inclusion bugs in webapps. fimap should be something like [sqlmap](http://sqlmap.sourceforge.net) just for LFI/RFI bugs instead of sql injection.
+fimap is a tool which can find, prepare, audit, exploit and even search automatically for local and remote file inclusion bugs in webapps. fimap aims to be what [sqlmap](https://sqlmap.org) is for SQL injection — but for LFI/RFI bugs.
 
-Originally, this tool was created by [this very awesome fellow](https://tha-imax.de/git/root/fimap/tree/master) but there hasn't been a lot of movement on the project since porting to github.
+## About This Fork
 
-* * *
+This is a **Python3 rewrite and continuation** of the original fimap project.
 
-## What works currently?
+**Original author:** [Iman Karim](mailto:fimap.dev@gmail.com) (fimap v1.00, 2009–2012, GPLv2)
 
-*   Check a Single URL, List of URLs, or Google results fully automaticly.
-*   Can identify and exploit file inclusion bugs.
+The original Python2 codebase was forward-ported to modern Python3 with async I/O, type-safe configuration, and security hardening (zero `exec()`, SSL verify on by default, no `pickle`). All original exploit logic, scanning heuristics, payload generation, and file definitions have been preserved.
 
-*   Relative\Absolute Path Handling.
-*   Tries automaticly to eleminate suffixes with Nullbyte and other methods like Dot-Truncation.
-*   Remotefile Injection.
-*   Logfile Injection.
+Original project home: [fimap.googlecode.com](http://fimap.googlecode.com) (archived)
 
-*   Test and exploit multiple bugs:
+---
 
-*   include()
-*   include_once()
-*   require()
-*   require_once()
+## What fimap Does
 
-*   You always define absolute pathnames in the configs. No monkey like redundant pathes like:
+*   Check a single URL, a list of URLs, or Google results automatically.
+*   Identify and exploit file inclusion bugs (`include`, `include_once`, `require`, `require_once`).
+*   Relative/absolute path handling — define absolute paths in config, no redundant `../../etc/passwd` chains.
+*   Automatic suffix removal via Null-Byte poisoning and Dot-Truncation.
+*   Remote File Inclusion (RFI) with FTP or local HTTP server.
+*   Logfile Injection (Apache access logs, SSH auth logs).
+*   Blind Mode (`--enable-blind`) for servers with error messages disabled.
+*   Interactive exploit shell with tab-completion and command execution.
+*   Spawn reverse shells, execute payloads, write files.
+*   Harvest mode: crawl a site and collect URLs for later scanning.
+*   AutoAwesome mode: auto-discover forms, cookies, and links, then scan them.
+*   Scans GET parameters, POST parameters, and HTTP headers.
+*   Proxy support.
+*   Plugin interface for custom exploit modules.
+*   Non-interactive exploiting (`--x-cmd`).
 
-*   ../etc/passwd
-*   ../../etc/passwd
-*   ../../../etc/passwd
-
-*   Has a Blind Mode (--enable-blind) for cases when the server has disabled error messages.
-*   Has an interactive exploit mode which...
-
-*   ...can spawn a shell on vulnerable systems.
-*   ...can spawn a reverse shell on vulnerable systems.
-*   ...can do everything you have added in your_payload-dict_ inside the_config.py_
-
-*   Add your own payloads and pathes to the config.py file.
-*   Has a Harvest mode which can collect URLs from a given domain for later pentesting.
-*   Works also on windows.
-*   Can handle directories in RFI mode like:
-
-*   <tt><? include ($_GET["inc"] . "/content/index.html"); ?></tt>
-*   <tt><? include ($_GET["inc"] . "_lang/index.html"); ?></tt>
-*   where Null-Byte is not possible.
-
-*   Can use proxys.
-*   Scans and exploits GET, POST and Cookies.
-*   Has a very small footprint. (No senseless bruteforcing of pathes - unless you need it.)
-*   Can attack also windows servers! 
-*   Has a tiny plugin interface for writing exploitmode plugins 
-
-*   Non Interactive Exploiting
-
-## What doesn't work yet?
-
-*   Other languages than PHP (even if engine is ready for others as well.)
-
-## Is there a How To?
-
-*   Check out [this](http://kaoticcreations.blogspot.com/2011/08/automated-lfirfi-scanning-exploiting.html) post by HR from [Kaotic Creations](http://kaoticcreations.blogspot.com) which explains fimap really good :) It's a tutorial for windows but I think unix heads should understand it as well.
+---
 
 ## Credits
 
-*   Main Developer: [Iman Karim](mailto:fimap.dev@gmail.com)
+*   **Original Author & Main Developer:** [Iman Karim](mailto:fimap.dev@gmail.com) — created fimap, designed the scanning engine, exploit logic, language definition system, and plugin architecture.
 
-*   Trusted Plugins:
+*   **Python3 Rewrite:** This continuation port.
 
-*   Metasploit binding by [Xavier Garcia](mailto:xavi.garcia(atom)gmail(dot)com)
-*   Weevily Injector by [Darren "Infodox" Martyn](mailto:infodox(atom)insecurety(dot)net) from [http://insecurety.net/](http://insecurety.net/)
-*   AES Reverse Shell by [Darren "Infodox" Martyn](mailto:infodox(atom)insecurety(dot)net) from [http://insecurety.net/](http://insecurety.net/)
+*   **External Libraries (original):**
+    *   Peteris Krumins — [xgoogle](http://www.catonmat.net/blog/python-library-for-google-search/) (removed in rewrite)
+    *   Pentestmonkey — [php-reverse-shell](http://pentestmonkey.net/tools/php-reverse-shell/)
+    *   Crummy — [BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/) (upgraded to BS4)
+    *   Zeth0 — [ssh.py](http://commandline.org.uk/) (SSH client for log injection)
 
-*   Additional thanks goes out to:
+*   **Trusted Plugins (original):**
+    *   Metasploit binding — Xavier Garcia
+    *   Weevily Injector — Darren "Infodox" Martyn ([insecurety.net](http://insecurety.net/))
+    *   AES Reverse Shell — Darren "Infodox" Martyn
 
-*   Peteris Krumins for [xgoogle](http://www.catonmat.net/blog/python-library-for-google-search/) python module.
-*   Pentestmonkey for [php-reverse-shell](http://pentestmonkey.net/tools/php-reverse-shell/).
-*   Crummy for [BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/).
-*   Zeth0 from [commandline.org.uk](http://commandline.org.uk/) for ssh.py.
+---
 
-*   Also thanks to:
+## Feature Parity
 
-*   The [Python](http://python.org) Project
-*   The [Eclipse](http://eclipse.org) Project
-*   The [Netbeans](http://netbeans.org) Project
+| Feature | Status | Notes |
+|---------|:------:|-------|
+| Single URL scan (`-s`) | ✅ Python3 | async, concurrent |
+| Mass URL scan (`-m`) | ✅ Python3 | async, concurrent with semaphore |
+| AutoAwesome mode (`-4`) | ✅ Python3 | form scanning + cookie capture + link harvest |
+| Crawler/Harvester (`-H`) | ✅ Python3 | BS4, same-domain BFS |
+| Sniper scan (regex-based LFI detection) | ✅ Python3 | all original regex preserved |
+| Blind scan (`--enable-blind`) | ✅ Python3 | path traversal + nullbyte |
+| Null-Byte poisoning | ✅ Python3 | identical logic |
+| Dot-Truncation | ✅ Python3 | `difflib.SequenceMatcher`, Python3 API fix |
+| Language definitions (YAML) | ✅ Python3 | PHP: 16 exec methods, 11 include patterns, 5 extensions |
+| XML result storage (`~/fimap_result.xml`) | ✅ Python3 | JSON headers (was pickle), `xml.etree.ElementTree` |
+| Proxy support (`--http-proxy`) | ✅ Python3 | via httpx |
+| Colored output (`--enable-color`) | ✅ Python3 | ANSI terminal colors |
+| GET/POST/Header parameter scanning | ✅ Python3 | all three injection vectors |
+| SSL verification | ✅ Enabled by default | `--insecure` to disable |
+| Interactive exploit shell (`-x`) | ❌ Not ported | next priority |
+| Logfile Injection (Apache, SSH) | ❌ Not ported | planned |
+| Dynamic RFI (FTP/local modes) | ❌ Not ported | planned |
+| Plugin system | ❌ Not ported | planned (importlib-based, no exec) |
+| Google scan (`-g`) | ❌ Deprecated | Google HTML scraping broken since ~2014 |
+| Bing scan (`-B`) | ❌ Removed | Bing API v2 defunct |
+| `--update-def` | ❌ Removed | Google Code URLs dead |
+| `--install-plugins` | ❌ Removed | Google Code URLs dead |
+| `--show-my-ip` | ❌ Removed | hardcoded endpoint defunct |
+| Perl language support | ❌ Removed | non-functional in original (generated PHP code) |
+| CLI (`python -m fimap`) | ⚠️ Stub | prints version only |
+| Legacy code (`legacy/src/`) | ⚠️ Not deleted | reference-only, pending complete parity |
+
+---
+
+## Security Improvements vs Original
+
+| Concern | Original (Python2) | Rewrite (Python3) |
+|---------|-------------------|-------------------|
+| `exec()` calls | 3 (quiz gen, plugin loading) | **0** |
+| Header serialization | `pickle.dumps` + base64 | **JSON** |
+| SSL certificate verification | Disabled globally (`ssl.CERT_NONE`) | **Enabled by default** |
+| YAML/config loading | N/A (XML + `exec()` quiz code) | `yaml.safe_load()`, pure Python quiz |
+| Socket timeout | Global `socket.setdefaulttimeout()` | Per-request `httpx.Timeout` |
+| Configuration | Loose `dict` with string keys | Typed `AppConfig` dataclass |
+| BeautifulSoup | BS3 (bundled, Python2-only) | BS4 (packaged dependency) |
+
+---
+
+## Project Structure
+
+```
+fimap/
+├── config/              # YAML language definitions (was: config/*.xml)
+│   ├── generic.yaml     #   Global scan config, blind files, shell commands
+│   └── php.yaml         #   PHP exec methods, payloads, detectors
+├── scanners/            # Scan modes (single, mass, autoawesome)
+├── legacy/              # Original Python2 reference code (will be deleted)
+│   ├── src/             #   Core engine, exploit, crawler, plugins
+│   └── plugins/         #   External plugins (MSF bindings)
+├── plugins/             # Ported exploit plugins
+│   └── msf/             #   Metasploit integration (msfpayload/msfencode + XML-RPC listener)
+├── scanner.py           # Core async scanning engine
+├── language.py          # YAML loader, quiz generators, language registry
+├── http_client.py       # httpx async wrapper (SSL verify ON by default)
+├── models.py            # VulnReport, FileEntry, ExecMethod, Payload dataclasses
+├── config.py            # Typed AppConfig + RFIConfig
+├── crawler.py           # Async URL harvester (BS4)
+├── xml_store.py         # XML result persistence (JSON headers, no pickle)
+├── utils.py             # Logger, colored output, box drawing
+├── report.py            # Re-exports VulnReport from models
+├── __init__.py           # Package metadata
+└── __main__.py           # Entry point (CLI stub)
+```
+
+---
+
+## Installation
+
+```bash
+pip install httpx pyyaml beautifulsoup4    # core dependencies
+pip install paramiko                        # optional: SSH log injection
+python __main__.py --help                  # once CLI is built
+```
+
+**Requirements:** Python 3.10+, httpx, pyyaml, beautifulsoup4. Optional: paramiko (SSH log injection).
+
+---
+
+## License
+
+GNU General Public License v2.0 — same as original fimap.
