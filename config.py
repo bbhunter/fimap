@@ -66,6 +66,8 @@ class AppConfig:
     p_exploit_script_id: Optional[int] = None
     p_exploit_cmds: Optional[list] = None
     p_rfi_encode: Optional[str] = None
+    p_encode_chain: Optional[str] = None   # "url,base64" or "double_url"
+    p_oob_domain: Optional[str] = None     # DNS callback domain for blind LFI
 
     #=== Misc ==================================================================
     force_run: bool = False

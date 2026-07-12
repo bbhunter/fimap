@@ -90,6 +90,10 @@ def build_parser() -> argparse.ArgumentParser:
                       help="Force OS: linux or windows")
     scan.add_argument("--rfi-encoder", choices=["php_b64"], default=None,
                       help="RFI payload encoder")
+    scan.add_argument("--encode-chain", default=None,
+                      help="Chainable encodings: url,double_url,base64 (comma-separated)")
+    scan.add_argument("--oob-domain", default=None,
+                      help="DNS callback domain for blind LFI confirmation")
 
     #=== Google scanner =========================================================
     goog = p.add_argument_group("Google Scanner")
@@ -195,6 +199,8 @@ def _build_config(args: argparse.Namespace) -> AppConfig:
     elif args.force_os in ("windows", "unix"):
         config.force_os = args.force_os
     config.p_rfi_encode = args.rfi_encoder
+    config.p_encode_chain = args.encode_chain
+    config.p_oob_domain = args.oob_domain
 
     # Google
     config.p_pages = args.pages

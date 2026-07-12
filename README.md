@@ -54,7 +54,7 @@ Original project home: [fimap.googlecode.com](http://fimap.googlecode.com) (arch
 ### Infrastructure
 *   Proxy support (`--http-proxy`).
 *   Colored terminal output (`-C`).
-*   Full argparse CLI — all 38+ original flags.
+*   Full argparse CLI — all 38+ original flags + `--encode-chain`, `--oob-domain`.
 *   XML result storage (`~/fimap_result.xml`), JSON headers.
 *   Plugin interface for custom exploit modules (stub, planned).
 
@@ -107,6 +107,15 @@ Original project home: [fimap.googlecode.com](http://fimap.googlecode.com) (arch
 | Dynamic RFI (FTP/local modes) | ✅ Python3 | ftplib FTP upload/delete, local file write/delete, php_b64 encoder |
 | Logfile Injection (LA/LH/LF/LS/LE) | ✅ Python3 | 5 vectors, 66 log paths |
 | Authorization header injection (LA) | ✅ Python3 | base64-encoded, survives URI mangling |
+| php://input wrapper | ✅ Python3 | POST body code injection via wrapper sub-menu |
+| data:// wrapper | ✅ Python3 | inline base64 PHP via data:// URI |
+| expect:// wrapper | ✅ Python3 | direct command execution (expect extension) |
+| file:// wrapper | ✅ Python3 | alternative file access path |
+| Slash-Dot (/\.) suffix bypass | ✅ Python3 | bypass substr($file,-4) extension guards |
+| Advanced LFI fuzz payloads | ✅ Python3 | 23 payloads: Unicode bypass, double encoding, WAF evasion |
+| Log path auto-discovery | ✅ Python3 | canary seeding + wordlist probing across 66 paths |
+| Chainable payload encoding | ✅ Python3 | url → double_url → base64 chain for WAF evasion |
+| OOB DNS callback | ✅ Python3 | blind LFI confirmation via DNS lookup stub |
 | PHP_SESSION_UPLOAD_PROGRESS | ✅ Python3 | multipart POST → forged session → include |
 | PHP filter chains (arbitrary code) | ✅ Python3 | convert.iconv chains, 64/64 base64 chars mapped |
 | pearcmd.php RCE | ✅ Python3 | Docker/default PHP gadget, +config-create+ |
@@ -147,11 +156,12 @@ fimap/
 │   └── php.yaml         #   PHP exec methods, payloads, detectors
 ├── scanners/            # Scan modes (single, mass, autoawesome)
 ├── exploit/             # Interactive exploit shell, RFI, log injection, modern techniques
-│   ├── shell.py         #   Domain/vuln selection, injection testing, command loop
-│   ├── rfi.py           #   Dynamic RFI: FTP/local payload upload/delete
-│   ├── log_inject.py    #   Logfile injection: 5 vectors (LA/LH/LF/LS/LE), 66 paths
+│   ├── shell.py         #   Domain/vuln selection, injection testing, command loop, wrappers
+│   ├── rfi.py           #   Dynamic RFI: FTP/local upload/delete, chainable encoding
+│   ├── log_inject.py    #   Logfile injection: 5 vectors (LA/LH/LF/LS/LE), 66 paths, auto-discovery
 │   ├── php_session.py   #   PHP_SESSION_UPLOAD_PROGRESS technique
 │   ├── php_filters.py   #   PHP filter chain generator (arbitrary code, no files)
+│   ├── oob.py           #   Out-of-band DNS callback for blind LFI confirmation
 │   └── haxhelper.py     #   Plugin bridge (command execution, file upload)
 ├── plugins/             # Ported exploit plugins
 │   └── msf/             #   Metasploit integration (XML-RPC listener)

