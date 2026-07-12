@@ -210,12 +210,42 @@ log_files:
     flags: LHx
     unix: true
     windows: false
+  - path: /usr/local/etc/httpd/logs/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /usr/local/www/logs/thttpd_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/apache/logs/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/log/thttpd_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/www/log/access_log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
   - path: "C:\\Program Files\\Apache Group\\Apache\\logs\\access.log"
     find: '"GET /'
     flags: LHx
     unix: false
     windows: true
   - path: "C:\\Program Files\\Apache Group\\Apache\\logs\\access_log"
+    find: '"GET /'
+    flags: LHx
+    unix: false
+    windows: true
+  - path: "C:\\apache\\logs\\access.log"
     find: '"GET /'
     flags: LHx
     unix: false
@@ -270,6 +300,61 @@ log_files:
     flags: Lx
     unix: true
     windows: false
+  - path: /etc/httpd/logs/error.log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /etc/httpd/logs/error_log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /opt/lampp/logs/error_log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /usr/local/apache/logs/error.log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /usr/local/etc/httpd/logs/error_log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /var/apache/logs/error_log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /var/log/apache-ssl/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/log/apache-ssl/error.log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /var/www/log/error_log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /var/www/logs/error.log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /var/www/logs/error_log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
   - path: /var/log/nginx/access.log
     find: '"GET /'
     flags: LHx
@@ -285,12 +370,32 @@ log_files:
     flags: LFx
     unix: true
     windows: false
+  - path: "C:\\apache\\logs\\error.log"
+    find: 'PHP '
+    flags: Lx
+    unix: false
+    windows: true
+  - path: "C:\\Program Files\\Apache Group\\Apache\\logs\\error.log"
+    find: 'PHP '
+    flags: Lx
+    unix: false
+    windows: true
+  - path: "C:\\xampp\\apache\\logs\\error.log"
+    find: 'PHP '
+    flags: Lx
+    unix: false
+    windows: true
   - path: /var/mail/www-data
     find: 'From '
     flags: LEx
     unix: true
     windows: false
   - path: /var/spool/mail/www-data
+    find: 'From '
+    flags: LEx
+    unix: true
+    windows: false
+  - path: /var/log/maillog
     find: 'From '
     flags: LEx
     unix: true
