@@ -71,6 +71,7 @@ Original project home: [fimap.googlecode.com](http://fimap.googlecode.com) (arch
     *   PHP_SESSION_UPLOAD_PROGRESS — technique from [HackTricks](https://hacktricks.wiki/en/pentesting-web/file-inclusion/index.html)
     *   Authorization header log poisoning — technique from [Fredrik Nordberg Almroth](http://h.ackack.net/)
     *   pearcmd.php RCE — technique from [Phith0n](https://www.leavesongs.com/PENETRATION/docker-php-include-getshell.html) and [watchTowr](https://labs.watchtowr.com/form-tools-we-need-to-talk-about-php/)
+    *   /proc/self/environ, /proc/self/fd, PHPInfo race condition — techniques from [V3n0M-Scanner](https://github.com/v3n0M-Scanner/V3n0M-Scanner)
 
 *   **External Libraries (original):**
     *   Peteris Krumins — [xgoogle](http://www.catonmat.net/blog/python-library-for-google-search/) (removed in rewrite)
@@ -160,6 +161,9 @@ fimap/
 │   ├── rfi.py           #   Dynamic RFI: FTP/local upload/delete, chainable encoding
 │   ├── log_inject.py    #   Logfile injection: 5 vectors (LA/LH/LF/LS/LE), 66 paths, auto-discovery
 │   ├── php_session.py   #   PHP_SESSION_UPLOAD_PROGRESS technique
+│   ├── proc_environ.py  #   /proc/self/environ header injection
+│   ├── proc_fd.py       #   /proc/self/fd error log injection
+│   ├── phpinfo_race.py  #   PHPInfo temp file race condition LFI→RCE
 │   ├── php_filters.py   #   PHP filter chain generator (arbitrary code, no files)
 │   ├── oob.py           #   Out-of-band DNS callback for blind LFI confirmation
 │   └── haxhelper.py     #   Plugin bridge (command execution, file upload)
