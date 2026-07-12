@@ -1,14 +1,10 @@
-# fimap — Automatic LFI/RFI Scanner and Exploiter (Python3 Rewrite)
+# fimap v2.0 — Automatic LFI/RFI Scanner and Exploiter
 
 fimap is a tool which can find, prepare, audit, exploit and even search automatically for local and remote file inclusion bugs in webapps. fimap aims to be what [sqlmap](https://sqlmap.org) is for SQL injection — but for LFI/RFI bugs.
 
-## About This Fork
-
-This is a **Python3 rewrite and continuation** of the original fimap project.
-
 **Original author:** [Iman Karim](mailto:fimap.dev@gmail.com) (fimap v1.00, 2009–2012, GPLv2)
 
-The original Python2 codebase was forward-ported to modern Python3 with async I/O, type-safe configuration, and security hardening (zero `exec()`, SSL verify on by default, no `pickle`). All original exploit logic, scanning heuristics, payload generation, and file definitions have been preserved.
+fimap v2.0 is a full Python 3 rewrite: async I/O, type-safe configuration, zero `exec()` calls, SSL verification on by default, no `pickle`. All original exploit logic preserved and extended with modern LFI→RCE techniques.
 
 Original project home: [fimap.googlecode.com](http://fimap.googlecode.com) (archived)
 
@@ -16,21 +12,51 @@ Original project home: [fimap.googlecode.com](http://fimap.googlecode.com) (arch
 
 ## What fimap Does
 
-*   Check a single URL, a list of URLs, or Google results automatically.
-*   Identify and exploit file inclusion bugs (`include`, `include_once`, `require`, `require_once`).
-*   Relative/absolute path handling — define absolute paths in config, no redundant `../../etc/passwd` chains.
-*   Automatic suffix removal via Null-Byte poisoning and Dot-Truncation.
-*   Remote File Inclusion (RFI) with FTP or local HTTP server.
-*   Logfile Injection (Apache access logs, SSH auth logs).
-*   Blind Mode (`--enable-blind`) for servers with error messages disabled.
-*   Interactive exploit shell with tab-completion and command execution.
-*   Spawn reverse shells, execute payloads, write files.
-*   Harvest mode: crawl a site and collect URLs for later scanning.
-*   AutoAwesome mode: auto-discover forms, cookies, and links, then scan them.
+### Scanning & Discovery
+*   Single URL, mass URL list, or Google search scanning.
+*   Identify file inclusion bugs: `include`, `include_once`, `require`, `require_once`.
 *   Scans GET parameters, POST parameters, and HTTP headers.
-*   Proxy support.
-*   Plugin interface for custom exploit modules.
+*   Blind mode (`--enable-blind`) for servers with error messages disabled.
+*   AutoAwesome mode: auto-discover forms, cookies, and links, then scan them.
+*   Harvest mode: crawl a site recursively and collect URLs.
+
+### Exploitation
+*   Interactive exploit shell (`-x`) with tab-completion and command execution.
 *   Non-interactive exploiting (`--x-cmd`).
+*   Reverse shells, payload execution, file read/write.
+
+### LFI→RCE Techniques
+*   **Logfile Injection** — 5 vectors across 66 log paths:
+    *   `LA` Authorization header (base64-encoded, survives URI mangling)
+    *   `LH` Apache User-Agent (with `?`-path fallback)
+    *   `LF` vsftpd FTP username injection
+    *   `LS` SSH username injection (paramiko)
+    *   `LE` Email/SMTP injection
+*   **`/proc/self/environ`** — User-Agent reflection in process environment.
+*   **PHP_SESSION_UPLOAD_PROGRESS** — Forge PHP sessions via multipart POST.
+*   **PHP filter chains** — Generate arbitrary PHP code from `php://filter` without file writes (full 64-char base64 alphabet mapped).
+*   **pearcmd.php RCE** — Docker/default PHP image gadget (`+config-create+`).
+*   **php://input** — POST body code injection.
+*   **phar:// deserialization** — Trigger deserialization via `phar://` wrapper.
+*   **zip:// wrapper** — Include PHP from inside uploaded ZIP archives.
+
+### Payload Engineering
+*   Relative/absolute path handling with automatic prefix/suffix calculation.
+*   Null-Byte poisoning (`%00`) for suffix removal.
+*   Dot-Truncation for suffix removal (Windows + Unix).
+*   Directory traversal multiplication (`-M`).
+
+### Remote File Inclusion
+*   Dynamic RFI with FTP upload/delete (ftplib).
+*   Dynamic RFI with local HTTP server.
+*   `php_b64` payload encoder for RFI delivery.
+
+### Infrastructure
+*   Proxy support (`--http-proxy`).
+*   Colored terminal output (`-C`).
+*   Full argparse CLI — all 38+ original flags.
+*   XML result storage (`~/fimap_result.xml`), JSON headers.
+*   Plugin interface for custom exploit modules (stub, planned).
 
 ---
 
@@ -38,7 +64,13 @@ Original project home: [fimap.googlecode.com](http://fimap.googlecode.com) (arch
 
 *   **Original Author & Main Developer:** [Iman Karim](mailto:fimap.dev@gmail.com) — created fimap, designed the scanning engine, exploit logic, language definition system, and plugin architecture.
 
-*   **Python3 Rewrite:** This continuation port.
+*   **Python 3 Rewrite & Extensions:** This continuation.
+
+*   **New Techniques (v2.0):**
+    *   PHP filter chain generator — based on [loknop's research](https://gist.github.com/loknop/b27422d355ea1fd0d90d6dbc1e278d4d) and [synacktiv/php_filter_chain_generator](https://github.com/synacktiv/php_filter_chain_generator)
+    *   PHP_SESSION_UPLOAD_PROGRESS — technique from [HackTricks](https://hacktricks.wiki/en/pentesting-web/file-inclusion/index.html)
+    *   Authorization header log poisoning — technique from [Fredrik Nordberg Almroth](http://h.ackack.net/)
+    *   pearcmd.php RCE — technique from [Phith0n](https://www.leavesongs.com/PENETRATION/docker-php-include-getshell.html) and [watchTowr](https://labs.watchtowr.com/form-tools-we-need-to-talk-about-php/)
 
 *   **External Libraries (original):**
     *   Peteris Krumins — [xgoogle](http://www.catonmat.net/blog/python-library-for-google-search/) (removed in rewrite)
@@ -72,8 +104,16 @@ Original project home: [fimap.googlecode.com](http://fimap.googlecode.com) (arch
 | GET/POST/Header parameter scanning | ✅ Python3 | all three injection vectors |
 | SSL verification | ✅ Enabled by default | `--insecure` to disable |
 | Interactive exploit shell (`-x`) | ✅ Python3 | domain/vuln menus, exec probing, command loop, tab-complete |
-| Logfile Injection (Apache, SSH) | ✅ Python3 | Apache UA + SSH username kickstarter, base64 delivery |
 | Dynamic RFI (FTP/local modes) | ✅ Python3 | ftplib FTP upload/delete, local file write/delete, php_b64 encoder |
+| Logfile Injection (LA/LH/LF/LS/LE) | ✅ Python3 | 5 vectors, 66 log paths |
+| Authorization header injection (LA) | ✅ Python3 | base64-encoded, survives URI mangling |
+| PHP_SESSION_UPLOAD_PROGRESS | ✅ Python3 | multipart POST → forged session → include |
+| PHP filter chains (arbitrary code) | ✅ Python3 | convert.iconv chains, 64/64 base64 chars mapped |
+| pearcmd.php RCE | ✅ Python3 | Docker/default PHP gadget, +config-create+ |
+| phar:// deserialization | ✅ Python3 | wrapper support in config |
+| zip:// wrapper | ✅ Python3 | include PHP from uploaded ZIP |
+| /proc/self/* entries | ✅ Python3 | fd/{0,1,2}, status, cmdline, environ |
+| CLI (`python -m fimap`) | ✅ Python3 | full argparse port of all 38+ original flags |
 | Plugin system | ❌ Not ported | planned (importlib-based, no exec) |
 | Google scan (`-g`) | ❌ Deprecated | Google HTML scraping broken since ~2014 |
 | Bing scan (`-B`) | ❌ Removed | Bing API v2 defunct |
@@ -81,8 +121,6 @@ Original project home: [fimap.googlecode.com](http://fimap.googlecode.com) (arch
 | `--install-plugins` | ❌ Removed | Google Code URLs dead |
 | `--show-my-ip` | ❌ Removed | hardcoded endpoint defunct |
 | Perl language support | ❌ Removed | non-functional in original (generated PHP code) |
-| CLI (`python -m fimap`) | ✅ Python3 | full argparse port of all 38+ original flags |
-| Plugin system | ❌ Not ported | planned (importlib-based, no exec) |
 
 ---
 
@@ -105,13 +143,15 @@ Original project home: [fimap.googlecode.com](http://fimap.googlecode.com) (arch
 ```
 fimap/
 ├── config/              # YAML language definitions (was: config/*.xml)
-│   ├── generic.yaml     #   Global scan config, blind files, shell commands
+│   ├── generic.yaml     #   Global scan config, blind files, shell commands, 66 log paths
 │   └── php.yaml         #   PHP exec methods, payloads, detectors
 ├── scanners/            # Scan modes (single, mass, autoawesome)
-├── exploit/             # Interactive exploit shell, RFI, log injection
+├── exploit/             # Interactive exploit shell, RFI, log injection, modern techniques
 │   ├── shell.py         #   Domain/vuln selection, injection testing, command loop
 │   ├── rfi.py           #   Dynamic RFI: FTP/local payload upload/delete
-│   ├── log_inject.py    #   Logfile injection: Apache UA + SSH username kickstarter
+│   ├── log_inject.py    #   Logfile injection: 5 vectors (LA/LH/LF/LS/LE), 66 paths
+│   ├── php_session.py   #   PHP_SESSION_UPLOAD_PROGRESS technique
+│   ├── php_filters.py   #   PHP filter chain generator (arbitrary code, no files)
 │   └── haxhelper.py     #   Plugin bridge (command execution, file upload)
 ├── plugins/             # Ported exploit plugins
 │   └── msf/             #   Metasploit integration (XML-RPC listener)
@@ -134,12 +174,11 @@ fimap/
 ## Installation
 
 ```bash
-pip install httpx pyyaml beautifulsoup4    # core dependencies
-pip install paramiko                        # optional: SSH log injection
-python __main__.py --help                  # once CLI is built
+pip install httpx pyyaml beautifulsoup4 paramiko
+python cli.py --help
 ```
 
-**Requirements:** Python 3.10+, httpx, pyyaml, beautifulsoup4. Optional: paramiko (SSH log injection).
+**Requirements:** Python 3.10+, httpx, pyyaml, beautifulsoup4, paramiko.
 
 ---
 
