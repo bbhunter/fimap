@@ -350,10 +350,12 @@ def main() -> None:
     if config.p_monkeymode:
         print("Blind FI-error checking enabled.")
 
-    if config.force_os and config.force_os not in ("unix", "windows"):
+    if config.force_os and config.force_os not in ("unix", "windows", "linux"):
         print("Invalid parameter for 'force-os'.")
-        print("Only 'unix' or 'windows' are allowed!")
+        print("Only 'unix', 'windows', or 'linux' are allowed!")
         sys.exit(1)
+    if config.force_os == "linux":
+        config.force_os = "unix"
 
     if config.p_proxy:
         print("Using HTTP-Proxy '%s'." % config.p_proxy)

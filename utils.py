@@ -63,7 +63,7 @@ class Logger:
         }
 
     def log(self, txt: str, level: int) -> None:
-        if 4 - self.verbose < level:
+        if 4 - self.verbose <= level:
             label = self._levels.get(level, ("???", (WHITE, 0)))
             logline = "[%s] %s" % (label[0], txt)
             t = strftime("%H:%M:%S", gmtime())

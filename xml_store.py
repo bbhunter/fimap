@@ -12,6 +12,7 @@ import os
 import shutil
 import sys
 import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import ParseError
 from typing import Optional
 
 from models import VulnReport
@@ -30,8 +31,13 @@ class XMLResultStore:
 
     def _init_xml(self) -> None:
         if os.path.exists(self.xml_path):
-            self.tree = ET.parse(self.xml_path)
-            self.root = self.tree.getroot()
+            try:
+                self.tree = ET.parse(self.xml_path)
+                self.root = self.tree.getroot()
+            except ParseError:
+                self.log.log("Corrupted XML result file — creating fresh store.", LOG_WARN)
+                self.root = ET.Element("fimap")
+                self.tree = ET.ElementTree(self.root)
         else:
             self.root = ET.Element("fimap")
             self.tree = ET.ElementTree(self.root)

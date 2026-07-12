@@ -532,7 +532,7 @@ class FileInclusionScanner:
                         self.log.log("Possible file inclusion found blindly! -> '%s' with POST-Parameter '%s'." % (tmpurl2, k), LOG_ALWAYS)
                     elif hax_mode == 2:
                         self.log.log("Possible file inclusion found blindly! -> '%s' with Header(%s)-Parameter '%s'." % (tmpurl2, header_key, k), LOG_ALWAYS)
-                    rep = await self.identify_vuln(self.target_url, self.params, k, post, None, hax_mode, (go_back_symbols * i, True), is_unix, header_key, header_dict=head_dict2)
+                    rep = await self.identify_vuln(self.target_url, self.params, k, post, None, hax_mode, (go_back_symbols * i, True), is_unix, header_key, header_dict=head_dict2) if hax_mode == 0 else await self.identify_vuln(self.target_url, self.postparams, k, post, None, hax_mode, (go_back_symbols * i, True), is_unix, header_key, header_dict=head_dict2) if hax_mode == 1 else await self.identify_vuln(self.target_url, self.header, k, post, None, hax_mode, (go_back_symbols * i, True), is_unix, header_key, header_dict=head_dict2)
         else:
             do_break = True
 
@@ -688,7 +688,7 @@ class FileInclusionScanner:
                     self.log.log("Trying NULL-Byte Poisoning to get rid of the suffix...", LOG_INFO)
                     tmpurl_nb = url
                     post_hax_nb = post_data
-                    head = deepcopy(self.config.header)
+                    head = deepcopy(header_dict or self.config.header)
 
                     if hax_mode == 0:
                         tmpurl_nb = tmpurl_nb.replace("%s=%s" % (vuln_param, params[vuln_param]), "%s=%s%%00" % (vuln_param, rnd_str))
@@ -726,7 +726,7 @@ class FileInclusionScanner:
                         self.log.log("Trying Slash-Dot Bypass to bypass extension checks...", LOG_INFO)
                         tmpurl_sd = url
                         post_hax_sd = post_data
-                        head_sd = deepcopy(self.config.header)
+                        head_sd = deepcopy(header_dict or self.config.header)
 
                         if hax_mode == 0:
                             tmpurl_sd = tmpurl_sd.replace(
@@ -832,7 +832,7 @@ class FileInclusionScanner:
 
         desturl = url
         post_hax = post_data
-        head = deepcopy(self.config.header)
+        head = deepcopy(header_dict or self.config.header)
         header_dict = header_dict or {}
 
         async with self.semaphore:

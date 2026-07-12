@@ -57,6 +57,17 @@ class HTTPClient:
             await self._client.aclose()
             self._client = None
 
+    def reset(self) -> None:
+        """Force client recreation — use before asyncio.run() with new event loops."""
+        if self._client is not None:
+            import asyncio
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(self._client.aclose())
+            except RuntimeError:
+                pass  # No running loop, client is stale anyway
+            self._client = None
+
     async def get(
         self,
         url: str,
