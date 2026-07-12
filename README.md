@@ -71,9 +71,9 @@ Original project home: [fimap.googlecode.com](http://fimap.googlecode.com) (arch
 | Colored output (`--enable-color`) | ✅ Python3 | ANSI terminal colors |
 | GET/POST/Header parameter scanning | ✅ Python3 | all three injection vectors |
 | SSL verification | ✅ Enabled by default | `--insecure` to disable |
-| Interactive exploit shell (`-x`) | ❌ Not ported | next priority |
-| Logfile Injection (Apache, SSH) | ❌ Not ported | planned |
-| Dynamic RFI (FTP/local modes) | ❌ Not ported | planned |
+| Interactive exploit shell (`-x`) | ✅ Python3 | domain/vuln menus, exec probing, command loop, tab-complete |
+| Logfile Injection (Apache, SSH) | ✅ Python3 | Apache UA + SSH username kickstarter, base64 delivery |
+| Dynamic RFI (FTP/local modes) | ✅ Python3 | ftplib FTP upload/delete, local file write/delete, php_b64 encoder |
 | Plugin system | ❌ Not ported | planned (importlib-based, no exec) |
 | Google scan (`-g`) | ❌ Deprecated | Google HTML scraping broken since ~2014 |
 | Bing scan (`-B`) | ❌ Removed | Bing API v2 defunct |
@@ -81,8 +81,8 @@ Original project home: [fimap.googlecode.com](http://fimap.googlecode.com) (arch
 | `--install-plugins` | ❌ Removed | Google Code URLs dead |
 | `--show-my-ip` | ❌ Removed | hardcoded endpoint defunct |
 | Perl language support | ❌ Removed | non-functional in original (generated PHP code) |
-| CLI (`python -m fimap`) | ⚠️ Stub | prints version only |
-| Legacy code (`legacy/src/`) | ⚠️ Not deleted | reference-only, pending complete parity |
+| CLI (`python -m fimap`) | ✅ Python3 | full argparse port of all 38+ original flags |
+| Plugin system | ❌ Not ported | planned (importlib-based, no exec) |
 
 ---
 
@@ -108,11 +108,13 @@ fimap/
 │   ├── generic.yaml     #   Global scan config, blind files, shell commands
 │   └── php.yaml         #   PHP exec methods, payloads, detectors
 ├── scanners/            # Scan modes (single, mass, autoawesome)
-├── legacy/              # Original Python2 reference code (will be deleted)
-│   ├── src/             #   Core engine, exploit, crawler, plugins
-│   └── plugins/         #   External plugins (MSF bindings)
+├── exploit/             # Interactive exploit shell, RFI, log injection
+│   ├── shell.py         #   Domain/vuln selection, injection testing, command loop
+│   ├── rfi.py           #   Dynamic RFI: FTP/local payload upload/delete
+│   ├── log_inject.py    #   Logfile injection: Apache UA + SSH username kickstarter
+│   └── haxhelper.py     #   Plugin bridge (command execution, file upload)
 ├── plugins/             # Ported exploit plugins
-│   └── msf/             #   Metasploit integration (msfpayload/msfencode + XML-RPC listener)
+│   └── msf/             #   Metasploit integration (XML-RPC listener)
 ├── scanner.py           # Core async scanning engine
 ├── language.py          # YAML loader, quiz generators, language registry
 ├── http_client.py       # httpx async wrapper (SSL verify ON by default)
@@ -122,8 +124,9 @@ fimap/
 ├── xml_store.py         # XML result persistence (JSON headers, no pickle)
 ├── utils.py             # Logger, colored output, box drawing
 ├── report.py            # Re-exports VulnReport from models
-├── __init__.py           # Package metadata
-└── __main__.py           # Entry point (CLI stub)
+├── cli.py               # Full argparse CLI (all 38+ original flags)
+├── __init__.py          # Package metadata
+└── __main__.py          # Entry point → cli.main()
 ```
 
 ---
